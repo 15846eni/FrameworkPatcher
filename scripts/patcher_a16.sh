@@ -24,7 +24,7 @@ insert_line_before_all() {
     local pattern="$2"
     local new_line="$3"
 
-    python3 - "$file" "$pattern" "$new_line" <<'PY'
+    python3 - "$file" "$pattern" "$new_line" <<'PY' || status=$?
 from pathlib import Path
 import re
 import sys
@@ -63,7 +63,7 @@ if changed:
     path.write_text("\n".join(lines) + "\n")
 PY
 
-    local status=$?
+    local status=${status:-0}
     case "$status" in
         0)
             log "Inserted '${new_line}' before lines containing pattern '${pattern##*/}' in $(basename "$file")"
@@ -90,7 +90,7 @@ insert_const_before_condition_near_string() {
     local register="$4"
     local value="$5"
 
-    python3 - "$file" "$search_string" "$condition_prefix" "$register" "$value" <<'PY'
+    python3 - "$file" "$search_string" "$condition_prefix" "$register" "$value" <<'PY' || status=$?
 from pathlib import Path
 import re
 import sys
@@ -129,7 +129,7 @@ if changed:
     path.write_text("\n".join(lines) + "\n")
 PY
 
-    local status=$?
+    local status=${status:-0}
     case "$status" in
         0)
             log "Inserted const for ${register} near condition '${condition_prefix}' in $(basename "$file")"
@@ -154,7 +154,7 @@ replace_move_result_after_invoke() {
     local invoke_pattern="$2"
     local replacement="$3"
 
-    python3 - "$file" "$invoke_pattern" "$replacement" <<'PY'
+    python3 - "$file" "$invoke_pattern" "$replacement" <<'PY' || status=$?
 from pathlib import Path
 import re
 import sys
@@ -166,6 +166,13 @@ replacement = sys.argv[3]
 if not path.exists():
     sys.exit(4)
 
+# register-agnostic matching: {v9, v3} -> any register list
+m = re.search(r'\{v\d+(?:,\s*v\d+)*\}', invoke_pattern)
+if m:
+    line_re = re.compile(re.escape(invoke_pattern[:m.start()]) + r'\{v\d+(?:,\s*v\d+)*\}' + re.escape(invoke_pattern[m.end():]))
+else:
+    line_re = re.compile(re.escape(invoke_pattern))
+
 lines = path.read_text().splitlines()
 matched = False
 changed = False
@@ -173,16 +180,20 @@ changed = False
 i = 0
 while i < len(lines):
     line = lines[i]
-    if invoke_pattern in line:
+    if line_re.search(line):
         matched = True
         for j in range(i + 1, min(i + 6, len(lines))):
             target = lines[j].strip()
             if target.startswith('move-result'):
                 indent = re.match(r"\s*", lines[j]).group(0)
-                desired = f"{indent}{replacement}"
-                if target == replacement:
+                parts = target.split()
+                repl = replacement
+                if len(parts) > 1:
+                    repl = re.sub(r'\bv\d+\b', parts[1], replacement, count=1)
+                desired = f"{indent}{repl}"
+                if target == repl:
                     break
-                if lines[j].strip() == replacement:
+                if lines[j].strip() == repl:
                     break
                 lines[j] = desired
                 changed = True
@@ -198,7 +209,7 @@ if changed:
     path.write_text("\n".join(lines) + "\n")
 PY
 
-    local status=$?
+    local status=${status:-0}
     case "$status" in
         0)
             log "Replaced move-result after invoke '${invoke_pattern##*/}' in $(basename "$file")"
@@ -233,7 +244,7 @@ force_methods_return_const() {
         return 0
     fi
 
-    python3 - "$file" "$method_substring" "$ret_val" <<'PY'
+    python3 - "$file" "$method_substring" "$ret_val" <<'PY' || status=$?
 from pathlib import Path
 import sys
 
@@ -292,7 +303,7 @@ if found == 0:
     sys.exit(3)
 PY
 
-    local status=$?
+    local status=${status:-0}
     case "$status" in
         0)
             log "Set return constant 0x${ret_val} for methods containing '${method_substring}' in $(basename "$file")"
@@ -382,7 +393,7 @@ $new_method_body\\
 replace_if_block_in_strict_jar_file() {
     local file="$1"
 
-    python3 - "$file" <<'PY'
+    python3 - "$file" <<'PY' || status=$?
 from pathlib import Path
 import re
 import sys
@@ -425,7 +436,7 @@ if changed:
     path.write_text('\n'.join(lines) + '\n')
 PY
 
-    local status=$?
+    local status=${status:-0}
     case "$status" in
         0)
             log "Removed if-eqz guard in $(basename "$file")"
@@ -445,7 +456,7 @@ PY
 patch_reconcile_clinit() {
     local file="$1"
 
-    python3 - "$file" <<'PY'
+    python3 - "$file" <<'PY' || status=$?
 from pathlib import Path
 import sys
 
@@ -472,7 +483,7 @@ if changed:
     path.write_text('\n'.join(lines) + '\n')
 PY
 
-    local status=$?
+    local status=${status:-0}
     case "$status" in
         0)
             log "Updated <clinit> constant in $(basename "$file")"
@@ -496,7 +507,7 @@ ensure_const_before_if_for_register() {
     local register="$4"
     local value="$5"
 
-    python3 - "$file" "$invoke_pattern" "$condition_prefix" "$register" "$value" <<'PY'
+    python3 - "$file" "$invoke_pattern" "$condition_prefix" "$register" "$value" <<'PY' || status=$?
 from pathlib import Path
 import re
 import sys
@@ -534,7 +545,7 @@ if changed:
     path.write_text('\n'.join(lines) + '\n')
 PY
 
-    local status=$?
+    local status=${status:-0}
     case "$status" in
         0)
             log "Forced ${register} to 0x${value} before condition '${condition_prefix}' in $(basename "$file")"
@@ -557,7 +568,7 @@ PY
 replace_is_international_build_checks() {
     local file="$1"
 
-    python3 - "$file" <<'PY'
+    python3 - "$file" <<'PY' || status=$?
 from pathlib import Path
 import re
 import sys
@@ -594,7 +605,7 @@ if changed:
     path.write_text("\n".join(lines) + "\n")
 PY
 
-    local status=$?
+    local status=${status:-0}
     case "$status" in
         0)
             log "Replaced IS_INTERNATIONAL_BUILD gates in $(basename "$file")"
