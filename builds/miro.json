@@ -1,0 +1,24 @@
+{
+  "device": "miro",
+  "builds": {
+    "OS4.0.0.10.XOMCNXM": {
+      "android_version": "16",
+      "patch_version": "3.0.0",
+      "features": [
+        "disable_signature_verification"
+      ],
+      "build_time": "2026-11-17T17:34:31Z",
+      "git_commit": "78dc87c",
+      "checksums": {
+        "framework_patched.jar": "sha256:f3c6bbfb8755d1e7890d66c6e8512cb80d676c4951abe82e8aff4267b844273e",
+        "services_patched.jar": "sha256:10190276309f27541101d745b485be28e5f7a9372ec3cd5debc2fcb67d9de2de",
+        "miui-services_patched.jar": "sha256:5880931f08bdba4d809c4cc7123972472a18f7b463c28518d8cecc6bf6fbbbe7",
+        "module_zip": "sha256:cf6be71ad08ee1212bb086e509a11738d21782d1922c680278b06510186beb00"
+      },
+      "workflow_run_id": "44138039086",
+      "workflow_url": "https://github.com/15846eni/FrameworkPatcher/actions/runs/44138039086",
+      "release_url": "https://github.com/15846eni/FrameworkPatcher/releases/tag/build-tmp-44138039086"
+    }
+  },
+  "last_updated": "2026-11-17T17:35:21Z"
+}

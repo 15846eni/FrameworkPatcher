@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "devices": {
+    "miro": {
+      "OS4.0.0.10.XOMCNXM": {
+        "android_version": "16",
+        "build_time": "2026-11-17T17:34:31Z",
+        "patch_version": "3.0.0",
+        "release_url": "https://github.com/15846eni/FrameworkPatcher/releases/tag/build-tmp-44138039086",
+        "workflow_url": "https://github.com/15846eni/FrameworkPatcher/actions/runs/44138039086",
+        "features": [
+          "disable_signature_verification"
+        ]
+      }
+    }
+  },
+  "last_updated": "2026-11-17T17:35:21Z",
+  "engine_version": "3.0.0"
+}
